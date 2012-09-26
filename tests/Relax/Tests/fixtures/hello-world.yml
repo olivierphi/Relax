@@ -1,0 +1,6 @@
+routes:
+  -
+    pattern: /hello
+    name: hello
+    module: controller/hello
+    moduleFunction: simpleHelloAction

@@ -1,0 +1,16 @@
+routes:
+  -
+    pattern: /hello
+    name: namedRoute
+    module: controller/hello
+    moduleFunction: simpleHelloAction
+
+  -
+    pattern: /hello/{name}
+    module: controller/hello
+    moduleFunction: helloNameAction
+
+  -
+    pattern: /hello/{firstName}/{lastName}
+    module: controller/hello
+    moduleFunction: helloMultipleParamsAction
