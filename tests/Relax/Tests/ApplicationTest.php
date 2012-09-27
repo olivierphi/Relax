@@ -12,6 +12,7 @@ namespace Relax\Tests;
 
 use Relax\Application;
 use Relax\Route;
+use CommonJS\CommonJSProvider;
 use Symfony\Component\HttpFoundation\Request;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
@@ -22,9 +23,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     protected $app;
 
+    static protected $counter = 0;
+
     public function setUp()
     {
-        $this->app = new Application(__DIR__.'/../../../vendor/commonjs/commonjs/commonjs.php');
+        $commonJsNewEnvironment = CommonJSProvider::getInstance('relax_unit_tests_' . ++self::$counter);
+        $this->app = new Application($commonJsNewEnvironment);
         $this->app->setModulesPath(__DIR__.'/modules/');
     }
 

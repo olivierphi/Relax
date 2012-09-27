@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use CommonJS\CommonJSProvider;
 use Relax\RelaxException;
 
 class Application extends EventDispatcher implements HttpKernelInterface
@@ -31,20 +32,22 @@ class Application extends EventDispatcher implements HttpKernelInterface
     protected $routes;
 
     /**
-     * @var string
-     */
-    protected $commonJsLibPath;
-
-    /**
      * @var array the CommonJS environment (an array with "define", "require", "config" keys)
      */
     protected $commonJS;
 
-    public function __construct($commonJsLibPath = null)
+    /**
+     * If you don't pass an existing CommonJS environment, "CommonJSProvider::getInstance()" will be
+     * used to get one.
+     *
+     * @param array|null $commonJsEnvironment a CommonJS environment (an array with "define", "require", "config" keys)
+     */
+    public function __construct(array $commonJsEnvironment = null)
     {
-        $this->commonJsLibPath = $commonJsLibPath;
-
-        $this->initCommonJSEnvironment();
+        if (null === $commonJsEnvironment) {
+            $commonJsEnvironment = CommonJSProvider::getInstance();
+        }
+        $this->commonJS = $commonJsEnvironment;
 
         $this->routes = new RouteCollection();
         $this->addModulesDefinitions(array(
@@ -53,11 +56,28 @@ class Application extends EventDispatcher implements HttpKernelInterface
     }
 
     /**
-     * @param string $modulesRootPath
+     * @param string|array $modulesRootPath
      */
     public function setModulesPath ($modulesRootPath)
     {
         $this->commonJS['config']['basePath'] = $modulesRootPath;
+    }
+
+    /**
+     * @param string|array $modulesRootPath
+     */
+    public function addToModulesPath ($modulesRootPath)
+    {
+        $basePath = is_array($this->commonJS['config']['basePath']) ? $this->commonJS['config']['basePath'] :
+            array($this->commonJS['config']['basePath']) ;
+
+        if (is_string($modulesRootPath)) {
+            $basePath[] = $modulesRootPath;
+        } elseif (is_array($modulesRootPath)) {
+            $basePath = array_merge($basePath, $modulesRootPath);
+        }
+
+        $this->commonJS['config']['basePath'] = $basePath;
     }
 
     /**
@@ -179,21 +199,6 @@ class Application extends EventDispatcher implements HttpKernelInterface
     public function requireModule ($modulePath)
     {
         return call_user_func($this->commonJS['require'], $modulePath);
-    }
-
-
-    protected function initCommonJSEnvironment ()
-    {
-        if (null === $this->commonJsLibPath) {
-            // let's assume that we are in "vendor/relax/relax" dir...
-            $this->commonJsLibPath = __DIR__ . '/../../dr-benton/commonjs/commonjs.php';
-        }
-
-        if (!file_exists($this->commonJsLibPath)) {
-            throw new RelaxException('Unable to find CommonJS lib path "'.$this->commonJsLibPath.'"!');
-        }
-
-        $this->commonJS = include $this->commonJsLibPath;
     }
 
     protected function addModulesDefinitions (array $appModulesToDefine)
