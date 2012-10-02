@@ -27,6 +27,11 @@ class Application extends EventDispatcher implements HttpKernelInterface
 {
 
     /**
+     * @var array the Applications parameters array. Available as "relax/params" Module.
+     */
+    public $params;
+
+    /**
      * @var \Symfony\Component\Routing\RouteCollection an array of Relax Routes
      */
     protected $routes;
@@ -40,7 +45,7 @@ class Application extends EventDispatcher implements HttpKernelInterface
      * If you don't pass an existing CommonJS environment, "CommonJSProvider::getInstance()" will be
      * used to get one.
      *
-     * @param array|null $commonJsEnvironment a CommonJS environment (an array with "define", "require", "config" keys)
+     * @param array|null $commonJsEnvironment a CommonJS environment (an array with "define", "require" and "config" keys)
      */
     public function __construct(array $commonJsEnvironment = null)
     {
@@ -51,8 +56,11 @@ class Application extends EventDispatcher implements HttpKernelInterface
 
         $this->routes = new RouteCollection();
         $this->addModulesDefinitions(array(
-           'relax/routes' => $this->routes
+           'relax/app' => $this,
+           'relax/routes' => $this->routes,
         ));
+
+        $this->initParams();
     }
 
     /**
@@ -81,12 +89,15 @@ class Application extends EventDispatcher implements HttpKernelInterface
     }
 
     /**
-     * @param string $routeName
      * @param \Relax\Route $relaxRoute
+     * @param string|null $routeName
      * @return void
      */
-    public function addRoute ($routeName, Route $relaxRoute)
+    public function addRoute (Route $relaxRoute, $routeName = null)
     {
+        if (!$routeName) {
+            $routeName = $relaxRoute->generateRouteName();
+        }
         $this->routes->add($routeName, $relaxRoute);
     }
 
@@ -103,31 +114,17 @@ class Application extends EventDispatcher implements HttpKernelInterface
             }
         }
 
-        if (isset($rawConfigData['params'])) {
-            foreach ($rawConfigData['params'] as $currentParam) {
-                // TODO: handle params
-            }
-        }
-
-        if (isset($rawConfigData['services'])) {
-            foreach ($rawConfigData['services'] as $currentServiceData) {
-                // TODO: handle services
+        if (isset($rawConfigData['parameters'])) {
+            foreach ($rawConfigData['parameters'] as $currentParamName => $currentParamValue) {
+                $this->params[$currentParamName] = $currentParamValue;
             }
         }
     }
 
     /**
-     * @param string $routesYamlDefinitionFilePath
-    public function addRoutesYaml ($routesYamlDefinitionFilePath)
-    {
-
-    }
-     */
-
-    /**
-     * Handles a request and delivers a response.
+     * Handles a HTTP request and delivers a HTTP response.
      *
-     * @param Request $request Request to process
+     * @param \Symfony\Component\HttpFoundation\Request $request Request to process
      */
     public function run (Request $request = null)
     {
@@ -149,9 +146,9 @@ class Application extends EventDispatcher implements HttpKernelInterface
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
-
         $context = new RequestContext();
         $context->fromRequest($request);
+
         $matcher = new UrlMatcher($this->routes, $context);
 
         try {
@@ -168,8 +165,10 @@ class Application extends EventDispatcher implements HttpKernelInterface
                 'relax/request' => $request,
                 'relax/request/context' => $context,
                 'relax/raw-route-data' => $matchingRouteData,
+                'relax/route-name' => $matchingRouteData['_route'],
             ));
             $targetModuleResponse = $this->triggerRequestTargetModuleFunction($targetModulePath, $targetModuleFunctionName);
+            //print_r($targetModuleResponse);
 
             if ($targetModuleResponse instanceof Response) {
                 $response = $targetModuleResponse;
@@ -199,6 +198,91 @@ class Application extends EventDispatcher implements HttpKernelInterface
     public function requireModule ($modulePath)
     {
         return call_user_func($this->commonJS['require'], $modulePath);
+    }
+
+    /**
+     * This method should only be used for test purposes, as your
+     * routes mapped Modules will be CommonJS Modules : they
+     * will have an automatic access to their local "$require" function.
+     *
+     * @param string $modulePath
+     * @param callable $callable
+     */
+    public function defineModule ($modulePath, $callable)
+    {
+        call_user_func($this->commonJS['define'], $modulePath, $callable);
+    }
+
+    /**
+     * Redirects the user to another URL.
+     *
+     * @param string  $url    The URL to redirect to
+     * @param integer $status The status code (302 by default)
+     *
+     * @see RedirectResponse
+     * @copyright Fabien Potencier's Silex framework
+     */
+    public function redirect($url, $status = 302)
+    {
+        return new RedirectResponse($url, $status);
+    }
+
+    /**
+     * Creates a streaming response.
+     *
+     * @param mixed   $callback A valid PHP callback
+     * @param integer $status   The response status code
+     * @param array   $headers  An array of response headers
+     *
+     * @see StreamedResponse
+     * @copyright Fabien Potencier's Silex framework
+     */
+    public function stream($callback = null, $status = 200, $headers = array())
+    {
+        return new StreamedResponse($callback, $status, $headers);
+    }
+
+    /**
+     * Escapes a text for HTML.
+     *
+     * @param string  $text         The input text to be escaped
+     * @param integer $flags        The flags (@see htmlspecialchars)
+     * @param string  $charset      The charset
+     * @param Boolean $doubleEncode Whether to try to avoid double escaping or not
+     *
+     * @return string Escaped text
+     * @copyright Fabien Potencier's Silex framework
+     */
+    public function escape($text, $flags = ENT_COMPAT, $charset = null, $doubleEncode = true)
+    {
+        return htmlspecialchars($text, $flags, $charset ?: $this['charset'], $doubleEncode);
+    }
+
+    /**
+     * Convert some data into a JSON response.
+     *
+     * @param mixed   $data    The response data
+     * @param integer $status  The response status code
+     * @param array   $headers An array of response headers
+     *
+     * @see JsonResponse
+     * @copyright Fabien Potencier's Silex framework
+     */
+    public function json($data = array(), $status = 200, $headers = array())
+    {
+        return new JsonResponse($data, $status, $headers);
+    }
+
+    protected function initParams ()
+    {
+        $this->params = array(
+            'relax.debug' => false,
+            'relax.logger' => null,
+        );
+        $self = $this;
+        $this->defineModule('relax/params', function () use ($self) {
+            return $self->params;
+        });
     }
 
     protected function addModulesDefinitions (array $appModulesToDefine)
@@ -244,9 +328,9 @@ class Application extends EventDispatcher implements HttpKernelInterface
         $route->setTargetModulePath($routeRawData['module']);
         $route->setTargetModuleFunctionName($routeRawData['moduleFunction']);
 
-        $routeName = (isset($routeRawData['name'])) ? $routeRawData['name']: $route->generateRouteName() ;
+        $routeName = (isset($routeRawData['name'])) ? $routeRawData['name']: null ;
 
-        $this->addRoute($routeName, $route);
+        $this->addRoute($route, $routeName);
     }
 
 }

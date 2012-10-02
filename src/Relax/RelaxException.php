@@ -10,7 +10,7 @@
 
 namespace Relax;
 
-class RelaxException extends \Exception
+class RelaxException extends \RuntimeException
 {
 
 }

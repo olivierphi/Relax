@@ -39,7 +39,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $route->setTargetModulePath('controller/hello');
         $route->setTargetModuleFunctionName('simpleHelloAction');
 
-        $this->app->addRoute('hello', $route);
+        $this->app->addRoute($route);
         $request = Request::create('/hello');
         $response = $this->app->handle($request);
 
@@ -53,7 +53,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $route->setTargetModulePath('controller/hello');
         $route->setTargetModuleFunctionName('helloNameAction');
 
-        $this->app->addRoute('hello', $route);
+        $this->app->addRoute($route);
         $request = Request::create('/hello/Roger');
         $response = $this->app->handle($request);
 
@@ -69,11 +69,39 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $route->setTargetModulePath('controller/hello');
         $route->setTargetModuleFunctionName('helloMultipleParamsAction');
 
-        $this->app->addRoute('hello', $route);
+        $this->app->addRoute($route);
         $request = Request::create('/hello/Roger/Moore');
         $response = $this->app->handle($request);
 
         $this->assertEquals('hello Roger Moore! - unset', $response->getContent());
+    }
+
+    public function testSymfonySimpleResponse ()
+    {
+        $route = new Route('/hello');
+        $route->setTargetModulePath('controller/hello');
+        $route->setTargetModuleFunctionName('helloSymfonyResponseAction');
+
+        $this->app->addRoute($route);
+        $request = Request::create('/hello');
+        $response = $this->app->handle($request);
+
+        $this->assertEquals('hello', $response->getContent());
+    }
+
+    public function testSymfonyRedirectResponses ()
+    {
+        $route = new Route('/hello/redirect');
+        $route->setTargetModulePath('controller/hello');
+        $route->setTargetModuleFunctionName('helloSymfonyRedirectionAction');
+
+        $this->app->addRoute($route);
+        $request = Request::create('/hello/redirect');
+        $response = $this->app->handle($request);
+
+        $this->assertInstanceOf('Symfony\Component\HttpFoundation\RedirectResponse', $response);
+        $this->assertEquals('http://github.com', $response->getTargetUrl());
+        $this->assertEquals(302, $response->getStatusCode());
     }
 
     /**
@@ -85,7 +113,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $route->setTargetModulePath('controller/hello');
         $route->setTargetModuleFunctionName('helloNameAction');
 
-        $this->app->addRoute('hello', $route);
+        $this->app->addRoute($route, 'hello');
         $request = Request::create('/hello/Roger');
         $this->app->handle($request);
 
@@ -98,6 +126,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             '_moduleFunctionName' => 'helloNameAction',
             '_route' => 'hello',
         ), $this->app->requireModule('relax/raw-route-data'));
+        $this->assertEquals('hello', $this->app->requireModule('relax/route-name'));
+
+        $params = $this->app->requireModule('relax/params');
+        $this->assertInternalType('array', $params);
+        $this->assertEquals(false, $params['relax.debug']);
     }
 
     public function testSimpleRouteFromYaml ()
@@ -126,5 +159,22 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('controller/hello', $routesIterator['_hello_name']->getDefault('_modulePath'));
         $this->assertEquals('helloNameAction', $routesIterator['_hello_name']->getDefault('_moduleFunctionName'));
         $this->assertEquals('/hello/{firstName}/{lastName}', $routesIterator['_hello_firstName_lastName']->getPattern());
+    }
+
+    /**
+     * @depends testSimpleRouteFromYaml
+     */
+    public function testParametersFromYaml ()
+    {
+        $this->app->addYamlConfig(__DIR__.'/fixtures/params.yml');
+
+        $routesCollection = $this->app->requireModule('relax/routes');
+        $this->assertEquals(1, count($routesCollection));
+
+        $params = $this->app->requireModule('relax/params');
+        $this->assertEquals(true, $params['relax.debug']);
+        $this->assertEquals('hello', $params['app.simple.param']);
+        $this->assertEquals(array(1, 2), $params['app.array.param']);
+        $this->assertEquals(array('key1' => 1, 'key2' => 2), $params['app.hash.param']);
     }
 }

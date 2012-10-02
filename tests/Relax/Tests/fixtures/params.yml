@@ -1,0 +1,11 @@
+routes:
+  -
+    pattern: /hello
+    module: controller/hello
+    moduleFunction: simpleHelloAction
+
+parameters:
+  relax.debug: true
+  app.simple.param: 'hello'
+  app.array.param: [1, 2]
+  app.hash.param: {key1: 1, key2: 2}
