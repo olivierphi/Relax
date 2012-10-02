@@ -10,7 +10,6 @@
 
 namespace Relax;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,7 +22,7 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use CommonJS\CommonJSProvider;
 use Relax\RelaxException;
 
-class Application extends EventDispatcher implements HttpKernelInterface
+class Application implements HttpKernelInterface
 {
 
     /**
