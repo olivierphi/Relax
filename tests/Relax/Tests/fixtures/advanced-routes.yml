@@ -1,0 +1,15 @@
+routes:
+  -
+    pattern: /hello/{paramWithSlashes}
+    module: controller/hello
+    moduleFunction: helloParamWithSlashesAction
+    requirements: { paramWithSlashes: '.+'} # "paramWithSlashes" param can contain any chars - including slashes!
+
+
+  -
+    pattern: /hello/{name}
+    module: controller/hello
+    moduleFunction: helloNameAction
+    defaults: { name: 'Roger' } # "name" param is now optional!
+
+

@@ -27,9 +27,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $commonJsNewEnvironment = CommonJSProvider::getInstance('relax_unit_tests_' . ++self::$counter);
+        $commonJsNewEnvironment = CommonJSProvider::getInstance('relax_app_unit_tests_' . ++self::$counter);
         $this->app = new Application($commonJsNewEnvironment);
-        $this->app->setModulesPath(__DIR__.'/modules/');
+        $this->app->addModulesPath(__DIR__.'/modules/');
     }
 
 
@@ -117,6 +117,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $request = Request::create('/hello/Roger');
         $this->app->handle($request);
 
+        $this->assertInstanceOf('Relax\Application', $this->app->requireModule('relax/app'));
         $this->assertInstanceOf('Symfony\Component\Routing\RouteCollection', $this->app->requireModule('relax/routes'));
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $this->app->requireModule('relax/request'));
         $this->assertInstanceOf('Symfony\Component\Routing\RequestContext', $this->app->requireModule('relax/request/context'));
@@ -130,9 +131,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $params = $this->app->requireModule('relax/params');
         $this->assertInternalType('array', $params);
-        $this->assertEquals(false, $params['relax.debug']);
+        $this->assertEquals(false, $params['debug']);
     }
 
+    /**
+     * @depends testSimpleRouteWithParams
+     */
     public function testSimpleRouteFromYaml ()
     {
         $this->app->addYamlConfig(__DIR__.'/fixtures/hello-world.yml');
@@ -162,6 +166,32 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @depends testMultipleSimpleRoutesFromYaml
+     */
+    public function testRoutesRequirementsFromYaml ()
+    {
+        $this->app->addYamlConfig(__DIR__.'/fixtures/advanced-routes.yml');
+
+        $request = Request::create('/hello/Roger/Moore');
+        $response = $this->app->handle($request);
+
+        $this->assertEquals('hello Roger/Moore', $response->getContent());
+    }
+
+    /**
+     * @depends testMultipleSimpleRoutesFromYaml
+     */
+    public function testRoutesDefaultsFromYaml ()
+    {
+        $this->app->addYamlConfig(__DIR__.'/fixtures/advanced-routes.yml');
+
+        $request = Request::create('/hello');
+        $response = $this->app->handle($request);
+
+        $this->assertEquals('hello Roger!', $response->getContent());
+    }
+
+    /**
      * @depends testSimpleRouteFromYaml
      */
     public function testParametersFromYaml ()
@@ -172,7 +202,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, count($routesCollection));
 
         $params = $this->app->requireModule('relax/params');
-        $this->assertEquals(true, $params['relax.debug']);
+        $this->assertEquals(true, $params['debug']);
         $this->assertEquals('hello', $params['app.simple.param']);
         $this->assertEquals(array(1, 2), $params['app.array.param']);
         $this->assertEquals(array('key1' => 1, 'key2' => 2), $params['app.hash.param']);

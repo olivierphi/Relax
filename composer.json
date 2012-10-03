@@ -17,8 +17,12 @@
         "symfony/yaml": "2.1.*",
         "commonjs/commonjs": "dev-master"
     },
-    "suggest": {
-        "twig/twig": "dev-master"
+    "require-dev": {
+        "twig/twig": "dev-master",
+        "monolog/monolog": ">=1.0.0,<1.2-dev",
+        "symfony/monolog-bridge": "2.1.*",
+        "symfony/twig-bridge": "2.1.*",
+        "swiftmailer/swiftmailer": "4.2.*"
     },
     "autoload": {
         "psr-0": { "Relax": "src/" }

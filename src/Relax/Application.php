@@ -52,6 +52,7 @@ class Application implements HttpKernelInterface
             $commonJsEnvironment = CommonJSProvider::getInstance();
         }
         $this->commonJS = $commonJsEnvironment;
+        $this->addModulesPath(__DIR__ . '/../../php_modules/');
 
         $this->routes = new RouteCollection();
         $this->addModulesDefinitions(array(
@@ -65,15 +66,7 @@ class Application implements HttpKernelInterface
     /**
      * @param string|array $modulesRootPath
      */
-    public function setModulesPath ($modulesRootPath)
-    {
-        $this->commonJS['config']['basePath'] = $modulesRootPath;
-    }
-
-    /**
-     * @param string|array $modulesRootPath
-     */
-    public function addToModulesPath ($modulesRootPath)
+    public function addModulesPath ($modulesRootPath)
     {
         $basePath = is_array($this->commonJS['config']['basePath']) ? $this->commonJS['config']['basePath'] :
             array($this->commonJS['config']['basePath']) ;
@@ -177,18 +170,23 @@ class Application implements HttpKernelInterface
                 throw new RelaxException('Targer module must return a string or a Symfony Http Response, but got "'.$targetModuleResponse.'" instead!');
             }
 
-        } catch (ResourceNotFoundException $e) {
-            $response = new Response('Not Found', 404);
         } catch (\Exception $e) {
-            $response = new Response('An error occurred', 500);
+
+            if ($e instanceof ResourceNotFoundException) {
+                $response = new Response('Not Found', 404);
+            } else {
+                $response = new Response('An error occurred', 500);
+            }
+            if ($this->params['debug']) {
+                $response->setContent('Ouch! An error occurred:<br/><b>'.$e->getMessage().'</b><br/><pre>'.$e->getTraceAsString().'</pre>');
+            }
         }
 
         return $response;
     }
 
     /**
-     * This method should only be used for test purposes, as your
-     * routes mapped Modules will be CommonJS Modules : they
+     * Don't use this method in CommonJS Modules : they
      * will have an automatic access to their local "$require" function.
      *
      * @param string $modulePath
@@ -200,9 +198,8 @@ class Application implements HttpKernelInterface
     }
 
     /**
-     * This method should only be used for test purposes, as your
-     * routes mapped Modules will be CommonJS Modules : they
-     * will have an automatic access to their local "$require" function.
+     * TDon't use this method in CommonJS Modules : they
+     * will have an automatic access to their local "$define" function.
      *
      * @param string $modulePath
      * @param callable $callable
@@ -275,8 +272,7 @@ class Application implements HttpKernelInterface
     protected function initParams ()
     {
         $this->params = array(
-            'relax.debug' => false,
-            'relax.logger' => null,
+            'debug' => false,
         );
         $self = $this;
         $this->defineModule('relax/params', function () use ($self) {
@@ -326,6 +322,13 @@ class Application implements HttpKernelInterface
         $route = new Route($routeRawData['pattern']);
         $route->setTargetModulePath($routeRawData['module']);
         $route->setTargetModuleFunctionName($routeRawData['moduleFunction']);
+
+        if (isset($routeRawData['defaults'])) {
+            $route->addDefaults($routeRawData['defaults']);
+        }
+        if (isset($routeRawData['requirements'])) {
+            $route->addRequirements($routeRawData['requirements']);
+        }
 
         $routeName = (isset($routeRawData['name'])) ? $routeRawData['name']: null ;
 

@@ -22,3 +22,7 @@ $exports['helloSymfonyResponseAction'] = function () {
 $exports['helloSymfonyRedirectionAction'] = function () {
     return new RedirectResponse('http://github.com');
 };
+
+$exports['helloParamWithSlashesAction'] = function ($paramWithSlashes) {
+    return 'hello '.$paramWithSlashes;
+};

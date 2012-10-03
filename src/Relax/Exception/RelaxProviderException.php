@@ -8,9 +8,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Relax;
+namespace Relax\Exception;
 
-class RelaxException extends \RuntimeException
+class RelaxProviderException extends \RuntimeException
 {
 
 }
