@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  * with inspiration from Fabien Potencier's Silex framework
@@ -17,10 +17,10 @@ $params = $require('relax/params');
 
 
 // Params check
-if (!isset($params['monolog.enabled']) || !$params['monolog.enabled']) {
+if (!$params['monolog.enabled']) {
     throw new RelaxProviderException('Enable Monolog with the parameter "monolog.enabled" set to "true" before using Monolog Provider !');
 }
-if (!isset($params['monolog.filePath']) || !$params['monolog.filePath']) {
+if (!$params['monolog.filePath']) {
     throw new RelaxProviderException('Set Monolog target file path templates path with the "monolog.filePath" before using Monolog Provider !');
 }
 
@@ -34,10 +34,7 @@ $monologOptions = array_merge(array(
 
 
 // Go! Go! Go!
-$hasBridge = class_exists('Symfony\Bridge\Monolog\Logger');
-$loggerClass = $hasBridge ? 'Symfony\Bridge\Monolog\Logger' : 'Monolog\Logger';
-
-$logger = new $loggerClass($monologOptions['loggerName']);
+$logger = new Monolog\Logger($monologOptions['loggerName']);
 //TODO: add Handlers customization
 $logger->pushHandler(new StreamHandler($params['monolog.filePath'], $monologOptions['level']));
 

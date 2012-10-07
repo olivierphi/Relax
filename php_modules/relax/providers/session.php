@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  * with inspiration from Fabien Potencier's Silex framework
@@ -19,7 +19,7 @@ $params = $require('relax/params');
 
 
 // Params check
-if (!isset($params['session.enabled']) || !$params['session.enabled']) {
+if (!$params['session.enabled']) {
     throw new RelaxProviderException('Enable Sessions with the parameter "session.enabled" set to "true" before using Session Provider !');
 }
 

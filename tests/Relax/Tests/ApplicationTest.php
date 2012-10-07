@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  *
@@ -130,7 +130,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('hello', $this->app->requireModule('relax/route-name'));
 
         $params = $this->app->requireModule('relax/params');
-        $this->assertInternalType('array', $params);
+        $this->assertInstanceOf('Relax\Params', $params);
         $this->assertEquals(false, $params['debug']);
     }
 
@@ -206,5 +206,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('hello', $params['app.simple.param']);
         $this->assertEquals(array(1, 2), $params['app.array.param']);
         $this->assertEquals(array('key1' => 1, 'key2' => 2), $params['app.hash.param']);
+        $this->assertEquals('hello world', $params['app.composed.param']);
+        $this->assertEquals('hello world!', $params['app.composed.recursive.param']);
+        $this->assertEquals('hello Mr. Phelps, how are you today?', $params['app.multiple.injections.param']);
     }
 }

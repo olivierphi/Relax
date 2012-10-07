@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  *

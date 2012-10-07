@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  * with inspiration from Fabien Potencier's Silex framework
@@ -18,7 +18,7 @@ $requestContext = $require('relax/request/context');
 
 
 // Params check
-if (!isset($params['url-generator.enabled']) || !$params['url-generator.enabled']) {
+if (!$params['url-generator.enabled']) {
     throw new RelaxProviderException('Enable URL Generator with the parameter "url-generator.enabled" set to "true" before using URL Generator Provider !');
 }
 

@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  * with inspiration from Fabien Potencier's Silex framework
@@ -16,7 +16,7 @@ $params = $require('relax/params');
 
 
 // Params check
-if (!isset($params['twig.enabled']) || !$params['twig.enabled']) {
+if (!$params['twig.enabled']) {
     throw new RelaxProviderException('Enable Twig with the parameter "twig.enabled" set to "true" before using Twig Provider !');
 }
 if (!isset($params['twig.path'])) {

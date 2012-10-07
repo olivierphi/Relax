@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  *
@@ -49,6 +49,7 @@ class ProvidersTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @depends testMonologProviderExceptionIfNotEnabled
      * @expectedException \Relax\Exception\RelaxProviderException
      */
     public function testMonologProviderExceptionIfNoFilePathProvided ()
@@ -57,6 +58,9 @@ class ProvidersTest extends \PHPUnit_Framework_TestCase
         $this->app->requireModule('relax/providers/monolog');
     }
 
+    /**
+     * @depends testMonologProviderExceptionIfNoFilePathProvided
+     */
     public function testMonologProviderWorksIfEnabled ()
     {
         $targetLogFilePath = __DIR__.'/monolog.log';

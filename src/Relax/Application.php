@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Relax micro-framwork.
+ * This file is part of the Relax micro-framework.
  *
  * (c) Olivier Philippon <https://github.com/DrBenton>
  *
@@ -26,7 +26,7 @@ class Application implements HttpKernelInterface
 {
 
     /**
-     * @var array the Applications parameters array. Available as "relax/params" Module.
+     * @var Params the Applications parameters array. Available as "relax/params" Module.
      */
     public $params;
 
@@ -271,9 +271,9 @@ class Application implements HttpKernelInterface
 
     protected function initParams ()
     {
-        $this->params = array(
+        $this->params = new Params(array(
             'debug' => false,
-        );
+        ));
         $self = $this;
         $this->defineModule('relax/params', function () use ($self) {
             return $self->params;

@@ -9,3 +9,10 @@ parameters:
   app.simple.param: 'hello'
   app.array.param: [1, 2]
   app.hash.param: {key1: 1, key2: 2}
+  app.composed.param: %app.simple.param% world
+  app.composed.recursive.param: %app.composed.param%!
+  app.test1: hello
+  app.test2: Mr. Phelps
+  app.test3: how are you
+  app.test4: %app.test3% today
+  app.multiple.injections.param: %app.test1% %app.test2%, %app.test4%?
