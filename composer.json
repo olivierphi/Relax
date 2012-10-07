@@ -20,7 +20,6 @@
     "require-dev": {
         "twig/twig": "dev-master",
         "monolog/monolog": ">=1.0.0,<1.2-dev",
-        "symfony/monolog-bridge": "2.1.*",
         "symfony/twig-bridge": "2.1.*",
         "swiftmailer/swiftmailer": "4.2.*"
     },
