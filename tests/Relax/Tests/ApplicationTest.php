@@ -210,4 +210,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('hello world!', $params['app.composed.recursive.param']);
         $this->assertEquals('hello Mr. Phelps, how are you today?', $params['app.multiple.injections.param']);
     }
+
+    public function testParametersAltInjectionRegExp ()
+    {
+        $this->app->params->paramsInjectionRegExp = '/#\{([a-z0-9._]+)\}/i';//this is da CoffeeScript spirit :-)
+        $this->app->params['test1'] = 'hi';
+        $this->app->params['test2'] = '#{test1} there!';
+        $this->assertEquals('hi there!', $this->app->params['test2']);
+    }
 }
