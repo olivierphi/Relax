@@ -209,6 +209,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('hello world', $params['app.composed.param']);
         $this->assertEquals('hello world!', $params['app.composed.recursive.param']);
         $this->assertEquals('hello Mr. Phelps, how are you today?', $params['app.multiple.injections.param']);
+        $this->assertEquals('hi Dr. Benton', implode(' ', $params['app.hash.injectedParams.param']));
+        $this->assertEquals('hi Dr. Benton, are you fine', implode(', ', $params['app.array.injectedParams.param']));
     }
 
     public function testParametersAltInjectionRegExp ()

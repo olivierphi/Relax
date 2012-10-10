@@ -105,19 +105,52 @@ class Params implements \ArrayAccess
     }
 
     /**
-     * @param mixed $offset
+     * @param string $offset
      */
     protected function initParam ($offset)
     {
         $paramRawValue = $this->rawParams[$offset];
-        $this->initializedParams[$offset] = preg_replace_callback($this->paramsInjectionRegExp, array($this, 'onParamInjectionFound'), $paramRawValue);
+
+        $this->initializedParams[$offset] = $this->getInterpolatedParamValue($paramRawValue);
     }
 
+    /**
+     * @param string $rawValue
+     * @return string
+     */
+    protected function getInterpolatedParamValue ($rawValue)
+    {
+        if (is_string($rawValue)) {
+            // Let's handle vars interpolation!
+            $value = preg_replace_callback($this->paramsInjectionRegExp, array($this, 'onParamInjectionFound'), $rawValue);
+        } elseif (is_array($rawValue)) {
+            // We offer vars interpolation in string values of first-level arrays
+            $interpolatedArray = $rawValue;//array copy
+            foreach ($rawValue as $arrayParamKey => $arrayParamValue) {
+                if (is_string($arrayParamValue)) {
+                    $interpolatedArray[$arrayParamKey] = preg_replace_callback($this->paramsInjectionRegExp, array($this, 'onParamInjectionFound'), $arrayParamValue);
+                } else {
+                    $interpolatedArray[$arrayParamKey] = $arrayParamValue;
+                }
+            }
+            $value = $interpolatedArray;
+        } else {
+            $value = $rawValue;
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array $matches
+     * @return string
+     */
     protected function onParamInjectionFound (array $matches)
     {
         $paramToInjectName = $matches[1];
-        $this->initParam($paramToInjectName);
+        $paramToInjectValue = (isset($this->initializedParams[$paramToInjectName])) ?  $this->initializedParams[$paramToInjectName]:
+            $this->rawParams[$paramToInjectName];
 
-        return $this->initializedParams[$paramToInjectName];
+        return $this->getInterpolatedParamValue($paramToInjectValue);
     }
 }

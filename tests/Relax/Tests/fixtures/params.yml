@@ -16,3 +16,8 @@ parameters:
   app.test3: how are you
   app.test4: %app.test3% today
   app.multiple.injections.param: %app.test1% %app.test2%, %app.test4%?
+  app.test5: hi
+  app.test6: Dr. Benton
+  app.test7: are you fine
+  app.hash.injectedParams.param: {key1: %app.test5%, key2: %app.test6%}
+  app.array.injectedParams.param: ['%app.test5% %app.test6%', %app.test7%]
